@@ -1,0 +1,35 @@
+name: GHCR Cleanup
+description: 'GitHub Action to prune/delete container versions from GitHub Container Registry (ghcr.io)'
+
+branding:
+  icon: 'scissors'
+  color: 'red'
+
+inputs:
+  token:
+    description: 'Token com permissões para excluir pacotes'
+    type: string
+    required: true
+  package_name:
+    description: 'Nome do pacote para limpar (deixe em branco para todos)'
+    type: string
+    required: false
+    default: ''
+  days_old:
+    description: 'Remover imagens mais antigas que X dias'
+    type: string
+    required: false
+    default: '30'
+  keep_latest_count:
+    description: 'Manter as últimas X versões de cada pacote'
+    type: string
+    required: false
+    default: '5'
+  organization:
+    description: 'Nome da organização (deixe em branco para o usuário atual)'
+    type: string
+    required: false
+        default: ''
+runs:
+  using: 'node20'
+  main: 'src/ghcr-cleanup.js'

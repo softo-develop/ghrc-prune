@@ -1,0 +1,19 @@
+name: Exemplo de Limpeza de Contêineres
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Executa semanalmente à meia-noite de domingo
+  workflow_dispatch:     # Permite execução manual
+
+jobs:
+  cleanup-containers:
+    name: Limpar contêineres antigos
+    uses: seu-usuario/ghcr-pruner/.github/workflows/prune.yml@main
+    with:
+      # Descomente e configure conforme necessário
+      # package_name: 'my-container'     # Nome do pacote específico
+      days_old: '60'                   # Remove imagens mais antigas que 60 dias
+      keep_latest_count: '10'          # Mantém as 10 versões mais recentes
+      # organization: 'sua-organizacao'  # Nome da sua organização
+    secrets:
+      token: ${{ secrets.PACKAGES_TOKEN }} 
