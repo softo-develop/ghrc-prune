@@ -1,10 +1,9 @@
 name: GHCR Cleanup
-description: 'GitHub Action to prune/delete container versions from GitHub Container Registry (ghcr.io)'
-
+description: GitHub Action to prune/delete container versions from GitHub Container Registry (ghcr.io)
+author: Nicolas Fernando
 branding:
   icon: 'scissors'
   color: 'red'
-
 inputs:
   token:
     description: 'Token com permissões para excluir pacotes'
@@ -29,7 +28,7 @@ inputs:
     description: 'Nome da organização (deixe em branco para o usuário atual)'
     type: string
     required: false
-        default: ''
+    default: ''
 runs:
   using: 'node20'
   main: 'src/ghcr-cleanup.js'
