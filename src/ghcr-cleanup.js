@@ -1,13 +1,43 @@
 #!/usr/bin/env node
 
-const axios = require('axios');
 const core = require('@actions/core');
+const github = require('@actions/github');
 
 // Função para calcular data limite baseada em dias
 function calculateCutoffDate(daysOld) {
   const now = new Date();
   const cutoffDate = new Date(now.getTime() - daysOld * 24 * 60 * 60 * 1000);
   return cutoffDate;
+}
+
+// Função para fazer requisições à API do GitHub
+async function githubApiRequest(endpoint, method = 'GET', token) {
+  const url = `https://api.github.com${endpoint}`;
+  const options = {
+    method,
+    headers: {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+      'User-Agent': 'GHCR-Pruner'
+    }
+  };
+
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      const errorData = await response.text();
+      throw new Error(`GitHub API responded with ${response.status}: ${errorData}`);
+    }
+    
+    if (method === 'DELETE') {
+      return true;
+    }
+    
+    return await response.json();
+  } catch (error) {
+    throw new Error(`Error calling GitHub API: ${error.message}`);
+  }
 }
 
 // Função principal
@@ -19,16 +49,6 @@ async function main() {
     const daysOld = parseInt(core.getInput('days_old') || '30', 10);
     const keepLatest = parseInt(core.getInput('keep_latest_count') || '5', 10);
     const organization = core.getInput('organization') || '';
-    
-    // Configurar cliente axios com headers de autenticação
-    const api = axios.create({
-      baseURL: 'https://api.github.com',
-      headers: {
-        'Authorization': `token ${token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      }
-    });
 
     // Calcular data limite para remoção
     const cutoffDate = calculateCutoffDate(daysOld);
@@ -48,8 +68,8 @@ async function main() {
     let packages = [];
     if (!packageName) {
       core.info('Buscando todos os pacotes de contêiner...');
-      const response = await api.get(`${apiBasePath}?package_type=container`);
-      packages = response.data.map(pkg => pkg.name);
+      const packagesData = await githubApiRequest(`${apiBasePath}?package_type=container`, 'GET', token);
+      packages = packagesData.map(pkg => pkg.name);
     } else {
       packages = [packageName];
     }
@@ -66,8 +86,8 @@ async function main() {
       // Obter todas as versões do pacote
       let versions = [];
       try {
-        const response = await api.get(`${apiBasePath}/container/${pkg}/versions`);
-        versions = response.data.map(version => ({
+        const versionsData = await githubApiRequest(`${apiBasePath}/container/${pkg}/versions`, 'GET', token);
+        versions = versionsData.map(version => ({
           id: version.id,
           name: version.metadata?.container?.tags?.[0] || 'sem-tag',
           created_at: version.created_at
@@ -103,7 +123,7 @@ async function main() {
           
           try {
             // Remover versão
-            await api.delete(`${apiBasePath}/container/${pkg}/versions/${version.id}`);
+            await githubApiRequest(`${apiBasePath}/container/${pkg}/versions/${version.id}`, 'DELETE', token);
             core.info('✅ Versão removida com sucesso!');
           } catch (error) {
             core.error(`❌ Falha ao remover versão: ${error.message}`);

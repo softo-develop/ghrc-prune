@@ -8,12 +8,9 @@ on:
 jobs:
   cleanup-containers:
     name: Limpar contêineres antigos
-    uses: seu-usuario/ghcr-pruner/.github/workflows/prune.yml@main
+    uses: softo-develop/ghrc-prune@main
     with:
-      # Descomente e configure conforme necessário
-      # package_name: 'my-container'     # Nome do pacote específico
-      days_old: '60'                   # Remove imagens mais antigas que 60 dias
-      keep_latest_count: '10'          # Mantém as 10 versões mais recentes
-      # organization: 'sua-organizacao'  # Nome da sua organização
-    secrets:
-      token: ${{ secrets.PACKAGES_TOKEN }} 
+      token: ${{ steps.token-step.outputs.token }}
+      organization: ${{ steps.repo_owner_name.outputs.repo_owner_name }}
+      days_old: 0
+      keep_latest_count: 2
