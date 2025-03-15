@@ -31,4 +31,4 @@ inputs:
     default: ''
 runs:
   using: 'node20'
-  main: 'src/ghcr-cleanup.js'
+  main: 'dist/index.js'
